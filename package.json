@@ -19,6 +19,7 @@
   },
   "homepage": "https://github.com/paulwarner-uncc/personal-budget#readme",
   "dependencies": {
+    "body-parser": "^1.20.2",
     "cors": "^2.8.5",
     "express": "^4.17.1",
     "mongoose": "^8.2.0"

@@ -2,8 +2,8 @@
 
 const express = require("express");
 const cors = require("cors");
-const path = require("path");
 const mongoose = require("mongoose");
+const bodyParser = require("body-parser");
 
 const budgetModel = require("./models/budgetCategory");
 
@@ -13,8 +13,12 @@ const app = express();
 const port = 3000;
 
 app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({ extended: true }));
 
 app.get("/budget", (req, res) => {
+    res.header("Content-Type", "application/json");
+
     let budget = {myBudget: []};
 
     mongoose.connect(DB_URL)
@@ -23,13 +27,51 @@ app.get("/budget", (req, res) => {
                 .then((data) => {
                     budget.myBudget = data;
 
-                    res.header("Content-Type", "application/json");
                     res.end(JSON.stringify(budget));
-                }).catch((err) => {
-                    console.log("Error!", err);
+                }).catch(() => {
+                    res.end(JSON.stringify(budget));
+                }).finally(() => {
+                    mongoose.connection.close();
+                });
+        }).catch(() => {
+            mongoose.connection.close();
 
-                    res.header("Content-Type", "application/json");
-                    res.end(JSON.stringify(budget));
+            res.end(JSON.stringify(budget));
+        });
+});
+
+app.post("/budget/category", (req, res) => {
+    res.header("Content-Type", "application/json");
+
+    let newCategory = new budgetModel({
+        title: req.body.title,
+        budget: req.body.budget,
+        color: req.body.color
+    });
+
+    mongoose.connect(DB_URL)
+        .then(() => {
+            budgetModel.insertMany([newCategory])
+                .then(() => {
+                    console.log("Inserted!");
+
+                    res.end(JSON.stringify({
+                        error: false,
+                        msg: null,
+                        data: {
+                            title: newCategory.title,
+                            budget: newCategory.budget,
+                            color: newCategory.color
+                        }
+                    }));
+                }).catch((err) => {
+                    console.log("Insert error!", err);
+
+                    res.end(JSON.stringify({
+                        error: true,
+                        msg: "Invalid category data.",
+                        data: null
+                    }));
                 }).finally(() => {
                     mongoose.connection.close();
                 });
@@ -37,8 +79,11 @@ app.get("/budget", (req, res) => {
             console.log("Error!", err);
             mongoose.connection.close();
 
-            res.header("Content-Type", "application/json");
-            res.end(JSON.stringify(budget));
+            res.end(JSON.stringify({
+                error: true,
+                msg: "An unknown error occurred.",
+                data: null
+            }));
         });
 });
 

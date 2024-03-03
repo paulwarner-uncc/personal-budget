@@ -2,15 +2,7 @@ var dataSource = {
     datasets: [
         {
             data: [],
-            backgroundColor: [
-                '#ffcd56',
-                '#ff6384',
-                '#36a2eb',
-                '#fd6b19',
-                '#bf2a77',
-                '#bf2a2c',
-                '#bc2abf'
-            ]
+            backgroundColor: []
         }
     ],
     labels: []
@@ -25,22 +17,23 @@ function createChart() {
 }
 
 function getBudget() {
-axios.get('http://localhost:3000/budget')
-.then(function (res) {
-    for (var i = 0; i < res.data.myBudget.length; i++) {
-        dataSource.datasets[0].data[i] = res.data.myBudget[i].budget;
-        dataSource.labels[i] = res.data.myBudget[i].title;
-    }
+    axios.get('http://localhost:3000/budget')
+    .then(function (res) {
+        for (var i = 0; i < res.data.myBudget.length; i++) {
+            dataSource.datasets[0].data[i] = res.data.myBudget[i].budget;
+            dataSource.datasets[0].backgroundColor[i] = res.data.myBudget[i].color;
+            dataSource.labels[i] = res.data.myBudget[i].title;
+        }
 
-    // Generate a mapping between the labels and the colors
-    let color = d3.scale.ordinal()
-        .domain(dataSource.labels)
-        .range(dataSource.datasets[0].backgroundColor);
+        // Generate a mapping between the labels and the colors
+        let color = d3.scale.ordinal()
+            .domain(dataSource.labels)
+            .range(dataSource.datasets[0].backgroundColor);
 
 
-    createChart();
-    createCoolerChart(res.data.myBudget, color);
-});
+        createChart();
+        createCoolerChart(res.data.myBudget, color);
+    });
 }
 
 getBudget();

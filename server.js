@@ -1,38 +1,45 @@
 // Budget API
 
-const express = require('express');
-const cors = require('cors');
-const path = require('path');
+const express = require("express");
+const cors = require("cors");
+const path = require("path");
+const mongoose = require("mongoose");
+
+const budgetModel = require("./models/budgetCategory");
+
+const DB_URL = "mongodb://127.0.0.1:27017/personal_budget";
+
 const app = express();
 const port = 3000;
 
 app.use(cors());
 
-const budget = {
-    myBudget: [
-        {
-            title: 'Eat out',
-            budget: 25
-        },
-        {
-            title: 'Rent',
-            budget: 275
-        },
-        {
-            title: 'Grocery',
-            budget: 110
-        },
-    ]
-};
+app.get("/budget", (req, res) => {
+    let budget = {myBudget: []};
 
-app.get('/budget', (req, res) => {
-    // Based on https://stackoverflow.com/a/51655919
-    // Set the correct content type header for JSON
-    res.header("Content-Type", "application/json");
+    mongoose.connect(DB_URL)
+        .then(() => {
+            budgetModel.find({}).select({title: 1, budget: 1, color: 1, _id: 0})
+                .then((data) => {
+                    budget.myBudget = data;
 
-    // Send the JSON file by concatenating the current directory with the file name to get the
-    // absolute path
-    res.sendFile(path.join(__dirname, "budget.json"));
+                    res.header("Content-Type", "application/json");
+                    res.end(JSON.stringify(budget));
+                }).catch((err) => {
+                    console.log("Error!", err);
+
+                    res.header("Content-Type", "application/json");
+                    res.end(JSON.stringify(budget));
+                }).finally(() => {
+                    mongoose.connection.close();
+                });
+        }).catch(err => {
+            console.log("Error!", err);
+            mongoose.connection.close();
+
+            res.header("Content-Type", "application/json");
+            res.end(JSON.stringify(budget));
+        });
 });
 
 app.listen(port, () => {

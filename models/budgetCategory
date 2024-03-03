@@ -1,0 +1,28 @@
+const mongoose = require("mongoose");
+
+const budgetCategory = new mongoose.Schema({
+    title: {
+        type: String,
+        unique: true,
+        required: true
+    },
+    budget: {
+        type: Number,
+        required: true
+    },
+    color: {
+        type: String,
+        required: true,
+        validate: {
+            validator: validateColor    // Ensure the colors are actually colors
+        },
+        uppercase: true
+    }
+}, { collection: "budget_category" });
+
+function validateColor(color) {
+    // Make sure everything is of the form "#XXXXXX", where "X" is a hex character
+    return /^#[A-Fa-f0-9]{6}$/.test(color);
+}
+
+module.exports = mongoose.model("budget_category", budgetCategory);
